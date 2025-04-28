@@ -134,10 +134,28 @@ export default function Cart() {
         return;
       }
       const userReservations = JSON.parse(userReservationsStr);
-      userReservations.forEach((reservation: ReservationItem) => {
+      
+      // Only process reservations that are not canceled
+      const validReservations = userReservations.filter(
+        (reservation: ReservationItem) => reservation.status !== "Otkazano"
+      );
+      
+      if (validReservations.length === 0) {
+        toast.error("Nema validnih rezervacija za plaćanje");
+        return;
+      }
+
+      validReservations.forEach((reservation: ReservationItem) => {
         reservation.paid = true;
       });
-      localStorage.setItem("user_reservations", JSON.stringify(userReservations));
+      
+      // Update only the valid reservations in localStorage
+      const updatedReservations = userReservations.map((reservation: ReservationItem) => {
+        const validReservation = validReservations.find((r: ReservationItem) => r.id === reservation.id);
+        return validReservation || reservation;
+      });
+      
+      localStorage.setItem("user_reservations", JSON.stringify(updatedReservations));
       
       toast.success("Rezervacije su uspešno placene");
       setReservations([]);

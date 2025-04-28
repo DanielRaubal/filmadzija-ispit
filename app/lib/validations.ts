@@ -22,5 +22,12 @@ export const registerSchema = z.object({
   genre: z.array(z.string()).min(1, "Morate izabrati barem jedan žanr"),
 });
 
+export const reviewSchema = z.object({
+  movieId: z.number().min(1, "ID filma je obavezan"),
+  rating: z.number().min(1, "Ocena mora biti između 1 i 5").max(5, "Ocena mora biti između 1 i 5"),
+  comment: z.string().min(1, "Komentar mora imati najmanje 1 karakter").max(500, "Komentar ne sme biti duži od 500 karaktera"),
+});
+
 export type ProfileFormData = z.infer<typeof profileSchema>;
-export type RegisterFormData = z.infer<typeof registerSchema>; 
+export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ReviewFormData = z.infer<typeof reviewSchema>; 

@@ -27,6 +27,8 @@ import { toast } from "sonner";
 
 import { Textarea } from "@/components/ui/textarea";
 import CanceledReservations from "@/components/ui/reservations/cancledReservations";
+import { reviewSchema } from "@/app/lib/validations";
+import * as z from "zod";
 
 export default function Reservations() {
   const [reservations, setReservations] = useState<ReservationItem[]>([]);
@@ -324,12 +326,19 @@ export default function Reservations() {
         return;
       }
 
+      // Validate the review data
+      const validatedData = reviewSchema.parse({
+        movieId: data.movieId,
+        rating: data.rating,
+        comment: data.comment,
+      });
+
       const reviewStr = localStorage.getItem("user-reviews");
       let reviews: Review[] = reviewStr ? JSON.parse(reviewStr) : [];
 
       // Check if user already reviewed this movie
       const existingReview = reviews.find(
-        (r) => r.movieId === data.movieId && r.username === currentUser.username
+        (r) => r.movieId === validatedData.movieId && r.username === currentUser.username
       );
 
       if (existingReview) {
@@ -337,38 +346,40 @@ export default function Reservations() {
         return;
       }
 
-      if (data && data.movieId && data.rating && data.comment) {
-        const review: Review = {
-          reviewId: reviews.length + 1,
-          movieId: data.movieId,
-          username: currentUser.username,
-          rating: data.rating,
-          comment: data.comment,
-          createdAt: new Date().toISOString(),
-        };
+      const review: Review = {
+        reviewId: reviews.length + 1,
+        movieId: validatedData.movieId,
+        username: currentUser.username,
+        rating: validatedData.rating,
+        comment: validatedData.comment,
+        createdAt: new Date().toISOString(),
+      };
 
-        reviews.push(review);
-        localStorage.setItem("user-reviews", JSON.stringify(reviews));
-        toast.success("Recenzija je uspešno kreirana");
+      reviews.push(review);
+      localStorage.setItem("user-reviews", JSON.stringify(reviews));
+      toast.success("Recenzija je uspešno kreirana");
 
-        // Update the movie's rating in localStorage
-        const movieStr = localStorage.getItem("movies");
-        if (movieStr) {
-          let movies = JSON.parse(movieStr);
-          const movieIndex = movies.findIndex((m: any) => m.movieId === data.movieId);
-          if (movieIndex !== -1) {
-            const movieReviews = reviews.filter((r) => r.movieId === data.movieId);
-            const avgRating = movieReviews.reduce((acc, r) => acc + r.rating, 0) / movieReviews.length;
-            movies[movieIndex].rating = avgRating;
-            localStorage.setItem("movies", JSON.stringify(movies));
-          }
+      // Update the movie's rating in localStorage
+      const movieStr = localStorage.getItem("movies");
+      if (movieStr) {
+        let movies = JSON.parse(movieStr);
+        const movieIndex = movies.findIndex((m: any) => m.movieId === validatedData.movieId);
+        if (movieIndex !== -1) {
+          const movieReviews = reviews.filter((r) => r.movieId === validatedData.movieId);
+          const avgRating = movieReviews.reduce((acc, r) => acc + r.rating, 0) / movieReviews.length;
+          movies[movieIndex].rating = avgRating;
+          localStorage.setItem("movies", JSON.stringify(movies));
         }
-      } else {
-        toast.error("Molimo vas da unesete i ocenu i komentar");
       }
     } catch (error) {
-      console.error("Error creating review:", error);
-      toast.error("Došlo je do greške prilikom kreiranja recenzije");
+      if (error instanceof z.ZodError) {
+        // Handle validation errors
+        const errorMessage = error.errors.map(err => err.message).join(", ");
+        toast.error(errorMessage);
+      } else {
+        console.error("Error creating review:", error);
+        toast.error("Došlo je do greške prilikom kreiranja recenzije");
+      }
     }
   };
 

@@ -1,10 +1,14 @@
 import { Card } from "../card";
 import Link from "next/link";
-import { TicketX } from "lucide-react";
+import { SquareArrowOutUpRight, TicketX } from "lucide-react";
 import Image from "next/image";
 import { ReservationItem } from "@/app/types";
 
-export default function CanceledReservations( {cancledReservations}: {cancledReservations: ReservationItem[]}) {
+export default function CanceledReservations({
+  cancledReservations,
+}: {
+  cancledReservations: ReservationItem[];
+}) {
   return (
     <div>
       <div className="flex flex-row items-center gap-2 w-full border-b-2 mb-4">
@@ -13,19 +17,32 @@ export default function CanceledReservations( {cancledReservations}: {cancledRes
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-14">
         {cancledReservations.map((canceledReservation, index) => (
-          <Link
-            href={`/search/${canceledReservation.movie.movieId}`}
+          <div
             key={`canceled-${canceledReservation.id}-${index}`}
           >
             <Card className="shadow-lg p-0 relative h-full">
               <div className="absolute z-20 bg-red-800/10 rounded-md w-full h-full top-0 left-0" />
-              <Image
-                src={canceledReservation.movie.poster}
-                alt={canceledReservation.movie.title}
-                width={512}
-                height={512}
-                className="w-full rounded-t-md h-64 object-cover"
-              />
+              <Link
+                  href={`/search/${canceledReservation.movie.movieId}`}
+                  className="relative overflow-hidden  rounded-t-lg"
+                >
+                  <Image
+                    src={canceledReservation.movie.poster}
+                    alt={canceledReservation.movie.title}
+                    width={512}
+                    height={512}
+                    className="w-full rounded-t-lg h-64 object-cover hover:scale-105 transition-transform duration-300"
+                  />
+                  <SquareArrowOutUpRight className="absolute top-2 right-2 bg-white p-1 border-black border rounded-full" />
+                  <div className="mt-2 flex flex-row gap-2 items-center absolute top-0 left-2">
+                    {canceledReservation.status === "Rezervisano" && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-md border border-yellow-600 text-xs font-medium bg-yellow-100 text-yellow-800">
+                        Rezervisano
+                      </span>
+                    )}
+                  </div>
+                </Link>
+             
               <div className="mt-2 flex flex-row gap-2 items-center absolute top-0 left-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md border border-red-600 text-xs font-medium bg-red-100 text-red-800">
                   Otkazano
@@ -64,7 +81,7 @@ export default function CanceledReservations( {cancledReservations}: {cancledRes
                 </div>
               </div>
             </Card>
-          </Link>
+          </div>
         ))}
       </div>
     </div>

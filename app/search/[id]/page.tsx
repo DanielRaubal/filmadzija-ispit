@@ -90,7 +90,8 @@ export default function MoviePage() {
         item.date === showings[selectedShowing].date &&
         item.time === showings[selectedShowing].time &&
         item.cinema === showings[selectedShowing].cinema &&
-        item.paid === false
+        item.paid === false &&
+        item.status !== "Otkazano"
     );
 
     const lastId = localStorage.getItem("user_reservations")?.length || 0;
